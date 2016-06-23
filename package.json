@@ -1,0 +1,69 @@
+{
+    "author": "Karis Designs",
+    "dependencies": {
+        "pebble-clay": "^1.0.0"
+    },
+    "keywords": [],
+    "name": "plainview",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "configurable"
+        ],
+        "displayName": "PlainView",
+        "enableMultiJS": true,
+        "messageKeys": [
+            "TempUnits",
+            "AppKeyWeatherTemperature",
+            "AppKeyWeatherIcon",
+            "AppKeyWeatherFailed",
+            "AppKeyWeatherRequest",
+            "AppKeyJsReady"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/img_MenuNew.png",
+                    "menuIcon": true,
+                    "name": "MENU_IMAGE2",
+                    "targetPlatforms": null,
+                    "type": "png"
+                },
+                {
+                    "characterRegex": "[0-9]",
+                    "file": "fonts/ostrich-black.ttf",
+                    "name": "FONT_OSTRICH_BLACK_42",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "file": "images/img_menu.png",
+                    "name": "MENU_IMAGE",
+                    "type": "png"
+                },
+                {
+                    "file": "images/bluetooth.png",
+                    "name": "ICN_BLUETOOTH",
+                    "type": "png"
+                },
+                {
+                    "characterRegex": "[0-9:\u00b0a-izA-IZ\u2212]",
+                    "file": "fonts/nupe.ttf",
+                    "name": "FONT_NUPE_23",
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "basalt",
+            "chalk"
+        ],
+        "uuid": "a74d8bce-53d4-46b2-a0a0-22f465e071d7",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
