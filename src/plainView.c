@@ -107,7 +107,7 @@ static int TEST_HOUR = -1;
 typedef enum {
   PersistKeyConfig = 0,
   PersistKeyWeather,
-  PersistKeyCelcius,
+  PersistKeyCelsius,
   PersistKeyUpateRate,
   PersistKeyExpiredSecs
 } PersistKey;
@@ -181,7 +181,7 @@ static void update_times();
 static void update_date();
 static void mark_dirty_minute_hand_layer();
 
-static int s_celcius = 0;
+static int s_celsius = 0;
 
 
 static void update_current_time() {
@@ -284,10 +284,10 @@ static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
   }
 }
 static void config_callback(DictionaryIterator * iter, Tuple * tuple){
-  Tuple * celcius = dict_find(iter, MESSAGE_KEY_TempUnits);
-  if(celcius){
-    s_celcius = celcius->value->int8 - '0';
-    persist_write_int(PersistKeyCelcius, s_celcius);
+  Tuple * celsius = dict_find(iter, MESSAGE_KEY_TempUnits);
+  if(celsius){
+    s_celsius = celsius->value->int8 - '0';
+    persist_write_int(PersistKeyCelsius, s_celsius);
   }
   Tuple * updateRate = dict_find(iter, MESSAGE_KEY_WeatherUpdateRate);
   if(updateRate){
@@ -452,7 +452,7 @@ static void update_info_layer(){
   const bool weather_valid = time(NULL) < s_weather.timestamp;
   //only show weather if last successful update was within expiration
   int temp = s_weather.temperature;
-  if (!s_celcius){
+  if (!s_celsius){
     temp = temp * 9 / 5 + 32;
   }
   char temp_buffer[7];
@@ -570,8 +570,8 @@ static void init() {
     s_weather.icon = 0;
     s_weather.timestamp = 0;
   }
-  if(persist_exists(PersistKeyCelcius)){
-    s_celcius = persist_read_int(PersistKeyCelcius);
+  if(persist_exists(PersistKeyCelsius)){
+    s_celsius = persist_read_int(PersistKeyCelsius);
   }
   if(persist_exists(PersistKeyUpateRate)){
     WEATHER_UPDATE_MIN = persist_read_int(PersistKeyUpateRate);

@@ -29,7 +29,7 @@ module.exports = [
             "value": "0"
           },
           {
-            "label": "Celcius",
+            "label": "Celsius",
             "value": "1"
           }
         ]
