@@ -107,7 +107,9 @@ static int TEST_HOUR = -1;
 typedef enum {
   PersistKeyConfig = 0,
   PersistKeyWeather,
-  PersistKeyCelcius
+  PersistKeyCelcius,
+  PersistKeyUpateRate,
+  PersistKeyExpiredSecs
 } PersistKey;
 
 typedef enum {
@@ -138,8 +140,8 @@ static const int HOUR_HAND_RADIUS = 45;
 static const int MINUTE_HAND_STROKE = 6;
 static const int MINUTE_HAND_RADIUS = 120;
 static const int TICK_STROKE = 7;
-static const int WEATHER_UPDATE_MIN = 20;
-static const int WEATHER_EXPIRED_SECS = 1800;
+static int WEATHER_UPDATE_MIN = 20;
+static int WEATHER_EXPIRED_SECS = 1800;
 
 static Window * s_main_window;
 static Layer * s_root_layer;
@@ -285,9 +287,37 @@ static void config_callback(DictionaryIterator * iter, Tuple * tuple){
   Tuple * celcius = dict_find(iter, MESSAGE_KEY_TempUnits);
   if(celcius){
     s_celcius = celcius->value->int8 - '0';
-    update_info_layer();
-    persist_write_data(PersistKeyCelcius, &s_celcius, sizeof(s_celcius));
+    persist_write_int(PersistKeyCelcius, s_celcius);
   }
+  Tuple * updateRate = dict_find(iter, MESSAGE_KEY_WeatherUpdateRate);
+  if(updateRate){
+    switch(updateRate->value->int8){
+      case '0':
+        WEATHER_UPDATE_MIN = 0;
+        WEATHER_EXPIRED_SECS = 600;
+        break;
+      case '1':
+        WEATHER_UPDATE_MIN = 10;
+        WEATHER_EXPIRED_SECS = 1200;
+        break;
+      case '2':
+        WEATHER_UPDATE_MIN = 20;
+        WEATHER_EXPIRED_SECS = 1800;
+        break;
+      case '3':
+        WEATHER_UPDATE_MIN = 30;
+        WEATHER_EXPIRED_SECS = 2400;
+        break;
+      case '4':
+        WEATHER_UPDATE_MIN = 60;
+        WEATHER_EXPIRED_SECS = 4200;
+        break;
+    }
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "weather update min: %d", WEATHER_UPDATE_MIN);
+    persist_write_int(PersistKeyUpateRate, WEATHER_UPDATE_MIN);
+    persist_write_int(PersistKeyExpiredSecs, WEATHER_EXPIRED_SECS);
+  }
+  update_info_layer();
 }
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
   Tuple * icon_tuple = dict_find(iter, MESSAGE_KEY_AppKeyWeatherIcon);;
@@ -464,7 +494,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   layer_mark_dirty(s_tick_layer);
   //if time to update, send weather requestvoid *context
   const int32_t lastChecked = time(NULL) - (s_weather.timestamp - WEATHER_EXPIRED_SECS);
-  if ((!(s_current_time.minute % WEATHER_UPDATE_MIN) && (lastChecked > 60)) || s_weather.timestamp == 0)send_weather_request_callback(NULL);
+  if ((!(s_current_time.minute % WEATHER_UPDATE_MIN) && (lastChecked > 60) && (WEATHER_UPDATE_MIN > 0))
+      || s_weather.timestamp == 0)send_weather_request_callback(NULL);
   update_info_layer();
 }
 
@@ -540,7 +571,13 @@ static void init() {
     s_weather.timestamp = 0;
   }
   if(persist_exists(PersistKeyCelcius)){
-    persist_read_data(PersistKeyCelcius, &s_celcius, sizeof(s_celcius));
+    s_celcius = persist_read_int(PersistKeyCelcius);
+  }
+  if(persist_exists(PersistKeyUpateRate)){
+    WEATHER_UPDATE_MIN = persist_read_int(PersistKeyUpateRate);
+  }
+  if(persist_exists(PersistKeyExpiredSecs)){
+    WEATHER_EXPIRED_SECS = persist_read_int(PersistKeyExpiredSecs);
   }
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {

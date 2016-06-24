@@ -18,7 +18,8 @@
             "AppKeyWeatherIcon",
             "AppKeyWeatherFailed",
             "AppKeyWeatherRequest",
-            "AppKeyJsReady"
+            "AppKeyJsReady",
+            "WeatherUpdateRate"
         ],
         "projectType": "native",
         "resources": {
@@ -60,7 +61,7 @@
             "basalt",
             "chalk"
         ],
-        "uuid": "a74d8bce-53d4-46b2-a0a0-22f465e071d7",
+        "uuid": "ed298811-6d7a-40ed-b95c-840552b9ab86",
         "watchapp": {
             "watchface": true
         }
