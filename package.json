@@ -44,7 +44,7 @@
                 {
                     "characterRegex": "[0-9]",
                     "file": "fonts/ostrich-black.ttf",
-                    "name": "FONT_OSTRICH_BLACK_42",
+                    "name": "FONT_OSTRICH_BLACK_34",
                     "targetPlatforms": null,
                     "type": "font"
                 },
