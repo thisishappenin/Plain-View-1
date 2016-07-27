@@ -38,18 +38,18 @@ static GPoint time_points[12] = {
   {54,  28} ,
 };
 static GPoint time_points_large[12] = {
-  {90,  12} ,//12
+  {90,  13} ,//12
   {124, 23} ,//1
   {154, 48} ,//2
-  {163, 74} ,//3
-  {150, 108},//4
-  {124, 130},//5
-  {92,  138},//6
-  {63,  128},//7
-  {33,  106},//8
-  {20,  74} ,//9
+  {163, 79} ,//3
+  {150, 114},//4
+  {124, 136},//5
+  {92,  144},//6
+  {63,  136},//7
+  {33,  114},//8
+  {20,  79} ,//9
   {35,  47} ,//10
-  {63,  23} ,//11
+  {63,  23} ,//11 
 };
 static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 118 };
 static GPoint NORTH_INFO_CENTER = { .x = 90, .y = 62 };
@@ -134,12 +134,13 @@ typedef struct {
   int8_t temperature;
 } __attribute__((__packed__)) Weather;
 
-static const int HOUR_CIRCLE_RADIUS = 6;
-static const int HOUR_HAND_STROKE = 8;
-static const int HOUR_HAND_RADIUS = 45;
-static const int MINUTE_HAND_STROKE = 6;
-static const int MINUTE_HAND_RADIUS = 120;
-static const int TICK_STROKE = 7;
+static const float HOUR_CIRCLE_RADIUS = 5;
+static const float HOUR_INNER_RADIUS = 2;
+static const float HOUR_HAND_STROKE = 5.9;
+static const float HOUR_HAND_RADIUS = 45;
+static const float MINUTE_HAND_STROKE = 5.25;
+static const float MINUTE_HAND_RADIUS = 120;
+static const float TICK_STROKE = 5.5;
 static int WEATHER_UPDATE_MIN = 20;
 static int WEATHER_EXPIRED_SECS = 1800;
 
@@ -158,6 +159,7 @@ static Layer * s_tick_layer;
 static Layer * s_minute_hand_layer;
 static Layer * s_hour_hand_layer;
 static Layer * s_center_circle_layer;
+static Layer * s_inner_circle_layer;
 
 //static Config * s_config;
 static Messenger * s_messenger;
@@ -215,12 +217,13 @@ static ShiftLocation dodge_hands(const Infos field){
   //hour confligs
   ShiftLocation result = no;
   //if hour or minute hands will be in the upper quarter
-  const bool move_Weather = ((s_current_time.hour == 10 && s_current_time.minute > 30) ||
+  
+const bool move_Weather = ((s_current_time.hour == 10 && s_current_time.minute > 30) ||
                       (s_current_time.hour == 1 && s_current_time.minute < 30) ||
                       s_current_time.hour >= 11 || s_current_time.hour < 1
                       || s_current_time.minute > 53 || s_current_time.minute < 7);
   //if hour or minute hands will be in the lower quarter
-  const bool move_Date = ((s_current_time.hour >= 5 && s_current_time.hour < 7)
+ const bool move_Date = ((s_current_time.hour >= 5 && s_current_time.hour < 7)
                    || (s_current_time.minute >= 25 && s_current_time.minute < 35));
   //if the hour or minute hands will be in the left quarter
   const bool left_Blocked = ((s_current_time.hour >= 8 && s_current_time.hour < 10) ||
@@ -310,7 +313,7 @@ static void config_callback(DictionaryIterator * iter, Tuple * tuple){
         break;
       case '4':
         WEATHER_UPDATE_MIN = 60;
-        WEATHER_EXPIRED_SECS = 4200;
+        WEATHER_EXPIRED_SECS = 3600;
         break;
     }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "weather update min: %d", WEATHER_UPDATE_MIN);
@@ -361,7 +364,7 @@ static void update_times(){
   //set next hour center and position
   GPoint nhour_box_center = time_points[nextHour % 12];
   snprintf(buffer, 3, "%d", nextHour);
-  text_block_set_text(s_nhour_text, buffer, GColorMayGreen);
+  text_block_set_text(s_nhour_text, buffer, GColorBlue); //this sets whether the next hour shows AJB
   //set hour text
   snprintf(buffer, 3, "%d", hour);
   text_block_set_text(s_hour_text, buffer, GColorWhite);
@@ -376,7 +379,7 @@ static void update_date(){
   char buffer[] = "00";
   //set day text
   snprintf(buffer, sizeof(buffer), "%d", s_current_time.day);
-  text_block_set_text(s_south_info, buffer, GColorWhite);
+  text_block_set_text(s_south_info, buffer, GColorLightGray);
   //TRY TO DODGE ANY HANDS THAT MAY BE IN THE WAY
   const ShiftLocation move = dodge_hands(date);
   if(move == left){
@@ -410,20 +413,28 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const float hand_angle = angle(s_current_time.hour * 50 + s_current_time.minute * 50 / 60, 600);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
   graphics_context_set_stroke_width(ctx, HOUR_HAND_STROKE);
-  graphics_context_set_stroke_color(ctx, GColorBlueMoon);
+  //graphics_context_set_stroke_color(ctx, GColorBlue);
+  graphics_context_set_stroke_color(ctx, GColorWhite);
   graphics_draw_line(ctx, s_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
-  graphics_context_set_fill_color(ctx, GColorBabyBlueEyes);
+  //graphics_context_set_fill_color(ctx, GColorBabyBlueEyes);
+  graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
+}
+
+static void update_inner_circle_layer(Layer * layer, GContext * ctx){
+  //graphics_context_set_fill_color(ctx, GColorBabyBlueEyes);
+  graphics_context_set_fill_color(ctx, GColorBlue);
+  graphics_fill_circle(ctx, s_center, HOUR_INNER_RADIUS);
 }
 
 // Ticks
 static void draw_tick(GContext *ctx, const int index){
   int i = 0;
   graphics_context_set_stroke_width(ctx, TICK_STROKE);
-  graphics_context_set_stroke_color(ctx, GColorMayGreen);
+  graphics_context_set_stroke_color(ctx, GColorBlue);
   for(i=0;i<12;i++){
     graphics_draw_line(ctx, ticks_points[i][0],ticks_points[i][1]);
     
@@ -461,8 +472,13 @@ static void update_info_layer(){
 
   //const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
   //text_block_set_text(s_north_info, info_buffer, info_color);
-  if(weather_valid)text_block_set_text(s_north_info, info_buffer, GColorWhite);
-  else text_block_set_text(s_north_info, info_buffer, GColorMayGreen);
+  if(weather_valid)text_block_set_text(s_north_info, info_buffer, GColorLightGray);
+  else text_block_set_text(s_north_info, info_buffer, GColorDarkGray);
+  
+   if(!s_bt_connected){
+    text_block_set_text(s_north_info, info_buffer, GColorDarkGray);
+  }
+  
   //TRY TO DODGE ANY HANDS THAT MAY BE IN THE WAY
   const ShiftLocation move = dodge_hands(theWeather);
   if(move == left){
@@ -479,7 +495,7 @@ static void update_info_layer(){
 static void bt_handler(bool connected){
   s_bt_connected = connected;
   update_info_layer();
-  if(!connected)vibes_long_pulse();
+  //if(!connected)vibes_long_pulse();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
@@ -504,7 +520,7 @@ static void main_window_load(Window *window) {
   s_root_layer_bounds = layer_get_bounds(s_root_layer);
   s_center = grect_center_point(&s_root_layer_bounds);
   update_current_time();
-  window_set_background_color(window, GColorBlack);
+  window_set_background_color(window, GColorBlue);
 
   s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
   s_north_info = text_block_create(s_root_layer, NORTH_INFO_CENTER, s_font);
@@ -522,12 +538,15 @@ static void main_window_load(Window *window) {
   s_minute_hand_layer   = layer_create(s_root_layer_bounds);
   s_hour_hand_layer     = layer_create(s_root_layer_bounds);
   s_center_circle_layer = layer_create(s_root_layer_bounds);
+  s_inner_circle_layer = layer_create(s_root_layer_bounds);
   layer_set_update_proc(s_hour_hand_layer,     update_hour_hand_layer);
   layer_set_update_proc(s_minute_hand_layer,   update_minute_hand_layer);
   layer_set_update_proc(s_center_circle_layer, update_center_circle_layer);
+  layer_set_update_proc(s_inner_circle_layer, update_inner_circle_layer);  
   layer_add_child(s_root_layer, s_minute_hand_layer);
   layer_add_child(s_root_layer, s_hour_hand_layer);
   layer_add_child(s_root_layer, s_center_circle_layer);
+  layer_add_child(s_root_layer, s_inner_circle_layer);
   mark_dirty_minute_hand_layer();
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
@@ -546,6 +565,7 @@ static void main_window_unload(Window *window) {
   layer_destroy(s_hour_hand_layer);
   layer_destroy(s_minute_hand_layer);
   layer_destroy(s_center_circle_layer);
+  layer_destroy(s_inner_circle_layer);
 
   text_block_destroy(s_hour_text);
   text_block_destroy(s_nhour_text);
@@ -561,7 +581,7 @@ static void init() {
   s_weather_request_timeout = 0;
   s_js_ready = false;
   s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
-  s_cHour_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_OSTRICH_BLACK_42));
+  s_cHour_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_OSTRICH_BLACK_34));
   if(persist_exists(PersistKeyWeather)){
     persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
   }
