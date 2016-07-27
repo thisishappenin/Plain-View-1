@@ -25,10 +25,20 @@
         "resources": {
             "media": [
                 {
+                    "file": "images/img_menu.png",
+                    "name": "MENU_IMAGE",
+                    "type": "png"
+                },
+                {
                     "file": "images/img_MenuNew.png",
                     "menuIcon": true,
                     "name": "MENU_IMAGE2",
                     "targetPlatforms": null,
+                    "type": "png"
+                },
+                {
+                    "file": "images/bluetooth.png",
+                    "name": "ICN_BLUETOOTH",
                     "type": "png"
                 },
                 {
@@ -37,16 +47,6 @@
                     "name": "FONT_OSTRICH_BLACK_42",
                     "targetPlatforms": null,
                     "type": "font"
-                },
-                {
-                    "file": "images/img_menu.png",
-                    "name": "MENU_IMAGE",
-                    "type": "png"
-                },
-                {
-                    "file": "images/bluetooth.png",
-                    "name": "ICN_BLUETOOTH",
-                    "type": "png"
                 },
                 {
                     "characterRegex": "[0-9:\u00b0a-izA-IZ\u2212]",
